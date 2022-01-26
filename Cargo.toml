@@ -1,0 +1,5 @@
+[workspace]
+members = [
+  "neutauri_runtime",
+  "neutauri_bundler",
+]
