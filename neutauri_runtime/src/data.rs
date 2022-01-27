@@ -5,9 +5,7 @@ use std::{
     io::{self, Read, Result, Seek, SeekFrom},
     path::{self, Component, Path, PathBuf},
 };
-use wry::application::{
-    dpi::{Position, Size}
-};
+use wry::application::dpi::{Position, Size};
 
 const MAGIC_NUMBER_START: &[u8; 9] = b"NEUTFSv01";
 const MAGIC_NUMBER_END: &[u8; 9] = b"NEUTFSEnd";
@@ -34,7 +32,14 @@ struct Dir {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+struct Config {
+    window_attr: WindowAttr,
+    webview_attr: WebViewAttr,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Data {
+    config: Config,
     fs: Dir,
 }
 
@@ -136,12 +141,20 @@ impl Dir {
 }
 
 impl Data {
-    pub fn build_from_dir<P: AsRef<path::Path>>(source: P) -> Result<Vec<u8>> {
-        let embed_fs = Self::from_dir(source)?;
+    pub fn build_from_dir<P: AsRef<path::Path>>(
+        source: P,
+        window_attr: WindowAttr,
+        webview_attr: WebViewAttr,
+    ) -> Result<Vec<u8>> {
+        let embed_fs = Self::from_dir(source, window_attr, webview_attr)?;
         embed_fs.build()
     }
 
-    fn from_dir<P: AsRef<path::Path>>(source: P) -> Result<Self> {
+    fn from_dir<P: AsRef<path::Path>>(
+        source: P,
+        window_attr: WindowAttr,
+        webview_attr: WebViewAttr,
+    ) -> Result<Self> {
         let source = source.as_ref();
         let mut length: u64 = 0;
         let mut dir = Dir {
@@ -149,7 +162,13 @@ impl Data {
             dirs: Vec::new(),
         };
         dir.fill_with(source, source, &mut length)?;
-        Ok(Self { fs: dir })
+        Ok(Self {
+            fs: dir,
+            config: Config {
+                window_attr,
+                webview_attr,
+            },
+        })
     }
 
     fn build(self) -> Result<Vec<u8>> {
@@ -178,8 +197,12 @@ impl Data {
         Ok(target)
     }
 
-    pub fn pack<P: AsRef<path::Path>>(source: P, target: P) -> Result<()> {
-        fs::write(target, Self::build_from_dir(source)?)?;
+    pub fn pack<P: AsRef<path::Path>>(source: P, target: P, config: P) -> Result<()> {
+        let config: Config = toml::from_str(fs::read_to_string(config)?.as_str())?;
+        fs::write(
+            target,
+            Self::build_from_dir(source, config.window_attr, config.webview_attr)?,
+        )?;
         Ok(())
     }
 
@@ -268,8 +291,8 @@ pub fn load<P: AsRef<path::Path> + Copy>(path: P) -> Result<Data> {
     Data::new(path)
 }
 
-pub fn pack<P: AsRef<path::Path>>(source: P, target: P) -> Result<()> {
-    Data::pack(source, target)
+pub fn pack<P: AsRef<path::Path>>(source: P, target: P, config: P) -> Result<()> {
+    Data::pack(source, target, config)
 }
 
 fn normalize_path(path: &Path) -> PathBuf {
