@@ -5,7 +5,7 @@ use std::{
     io::{self, Read, Result, Seek, SeekFrom},
     path::{self, Component, Path, PathBuf},
 };
-use wry::application::dpi::{Position, Size};
+use wry::application::dpi::Position;
 
 const MAGIC_NUMBER_START: &[u8; 9] = b"NEUTFSv01";
 const MAGIC_NUMBER_END: &[u8; 9] = b"NEUTFSEnd";
@@ -32,29 +32,54 @@ struct Dir {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Config {
-    window_attr: WindowAttr,
-    webview_attr: WebViewAttr,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
 pub struct Data {
-    config: Config,
+    pub window_attr: WindowAttr,
+    pub webview_attr: WebViewAttr,
     fs: Dir,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub enum WindowSize {
+    Large,
+    Medium,
+    Small,
+    Fixed(f64, f64),
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct Config {
+    pub source: PathBuf,
+    pub target: PathBuf,
+    pub inner_size: Option<WindowSize>,
+    pub min_inner_size: Option<WindowSize>,
+    pub max_inner_size: Option<WindowSize>,
+    pub resizable: bool,
+    pub fullscreen: bool,
+    pub title: String,
+    pub maximized: bool,
+    pub visible: bool,
+    pub transparent: bool,
+    pub decorations: bool,
+    pub always_on_top: bool,
+    pub window_icon: Option<PathBuf>,
+    pub spa: bool,
+    pub url: Option<String>,
+    pub html: Option<PathBuf>,
+    pub initialization_script: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Icon {
-    rgba: Vec<u8>,
-    width: u32,
-    height: u32,
+    pub rgba: Vec<u8>,
+    pub width: u32,
+    pub height: u32,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct WindowAttr {
-    pub inner_size: Option<Size>,
-    pub min_inner_size: Option<Size>,
-    pub max_inner_size: Option<Size>,
+    pub inner_size: Option<WindowSize>,
+    pub min_inner_size: Option<WindowSize>,
+    pub max_inner_size: Option<WindowSize>,
     pub position: Option<Position>,
     pub resizable: bool,
     pub fullscreen: bool,
@@ -71,15 +96,15 @@ pub struct WindowAttr {
 pub struct WebViewAttr {
     pub visible: bool,
     pub transparent: bool,
+    pub spa: bool,
     pub url: Option<String>,
     pub html: Option<String>,
-    pub initialization_scripts: Vec<String>,
+    pub initialization_script: Option<String>,
 }
 
 impl File {
     pub fn decompressed_data(&mut self) -> Result<Vec<u8>> {
         let mut data = Vec::with_capacity(self.data.len());
-        //brotli::BrotliDecompress(&mut self.data, &mut data);
         let mut r = brotli::Decompressor::new(self.data.as_slice(), 4096);
         r.read_to_end(&mut data)?;
         Ok(data)
@@ -164,10 +189,8 @@ impl Data {
         dir.fill_with(source, source, &mut length)?;
         Ok(Self {
             fs: dir,
-            config: Config {
-                window_attr,
-                webview_attr,
-            },
+            window_attr,
+            webview_attr,
         })
     }
 
@@ -197,11 +220,20 @@ impl Data {
         Ok(target)
     }
 
-    pub fn pack<P: AsRef<path::Path>>(source: P, target: P, config: P) -> Result<()> {
-        let config: Config = toml::from_str(fs::read_to_string(config)?.as_str())?;
+    pub fn pack<P: AsRef<path::Path>>(config_path: P) -> Result<()> {
+        let config_path: &Path = config_path.as_ref().clone();
+        let config: Config = toml::from_str(fs::read_to_string(config_path)?.as_str())?;
+        let source = &match config_path.parent() {
+            Some(path) => path.join(&config.source).canonicalize()?,
+            None => config.source.canonicalize()?,
+        };
+        let target = &match config_path.parent() {
+            Some(path) => path.join(&config.target).canonicalize()?,
+            None => config.target.canonicalize()?,
+        };
         fs::write(
             target,
-            Self::build_from_dir(source, config.window_attr, config.webview_attr)?,
+            Self::build_from_dir(source, config.window_attr()?, config.webview_attr()?)?,
         )?;
         Ok(())
     }
@@ -242,7 +274,6 @@ impl Data {
         // 此时指针指向 Data 前
         base.take(u64::from_be_bytes(data_length_data))
             .read_to_end(&mut data)?;
-        fs::write("test2", &data)?;
         let serialize_options = bincode::DefaultOptions::new()
             .with_fixint_encoding()
             .allow_trailing_bytes()
@@ -287,12 +318,91 @@ impl Data {
     }
 }
 
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            source: PathBuf::from("."),
+            target: PathBuf::from("app.neu"),
+            inner_size: Some(WindowSize::Medium),
+            min_inner_size: None,
+            max_inner_size: None,
+            resizable: true,
+            fullscreen: false,
+            title: "".to_string(),
+            maximized: false,
+            visible: true,
+            transparent: false,
+            decorations: true,
+            always_on_top: false,
+            window_icon: None,
+            spa: false,
+            url: Some("/index.html".to_string()),
+            html: None,
+            initialization_script: Some("".to_string()),
+        }
+    }
+}
+
+impl Config {
+    pub fn window_attr(&self) -> Result<WindowAttr> {
+        Ok(WindowAttr {
+            inner_size: self.inner_size.clone(),
+            min_inner_size: self.min_inner_size.clone(),
+            max_inner_size: self.max_inner_size.clone(),
+            position: None,
+            resizable: self.resizable,
+            fullscreen: self.fullscreen,
+            title: self.title.clone(),
+            maximized: self.maximized,
+            visible: self.visible,
+            transparent: self.transparent,
+            decorations: self.decorations,
+            always_on_top: self.always_on_top,
+            window_icon: match &self.window_icon {
+                Some(path) => Some(load_icon(&path.as_path())?),
+                None => None,
+            },
+        })
+    }
+    pub fn webview_attr(&self) -> Result<WebViewAttr> {
+        Ok(WebViewAttr {
+            visible: self.visible,
+            transparent: self.transparent,
+            spa: self.spa,
+            url: self.url.clone(),
+            html: match &self.html {
+                Some(path) => fs::read_to_string(path.as_path()).ok(),
+                None => None,
+            },
+            initialization_script: self.initialization_script.clone(),
+        })
+    }
+}
+
 pub fn load<P: AsRef<path::Path> + Copy>(path: P) -> Result<Data> {
     Data::new(path)
 }
 
-pub fn pack<P: AsRef<path::Path>>(source: P, target: P, config: P) -> Result<()> {
-    Data::pack(source, target, config)
+pub fn pack<P: AsRef<path::Path>>(config: P) -> Result<()> {
+    Data::pack(config)
+}
+
+fn load_icon(path: &Path) -> Result<Icon> {
+    let (icon_rgba, icon_width, icon_height) = {
+        let image = match image::open(path) {
+            Ok(img) => img,
+            Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e)),
+        }
+        .into_rgba8();
+        let (width, height) = image.dimensions();
+        let rgba = image.into_raw();
+        (rgba, width, height)
+    };
+    Ok(Icon {
+        rgba: icon_rgba,
+        width: icon_width,
+        height: icon_height,
+    })
 }
 
 fn normalize_path(path: &Path) -> PathBuf {
