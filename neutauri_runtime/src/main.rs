@@ -1,7 +1,8 @@
 use wry::{
     application::{
-        event::{Event, StartCause, WindowEvent},
-        event_loop::{self, ControlFlow, EventLoop},
+        dpi::{PhysicalSize, Size},
+        event::{Event, WindowEvent},
+        event_loop::{ControlFlow, EventLoop},
         window::{Fullscreen, Icon, Window, WindowBuilder},
     },
     webview::{RpcRequest, WebViewBuilder},
@@ -59,41 +60,25 @@ fn main() -> wry::Result<()> {
         )?)),
         None => window_builder,
     };
-    let monitor = event_loop
+    let monitor_size = event_loop
         .primary_monitor()
-        .unwrap_or_else(|| event_loop.available_monitors().next().unwrap());
-    dbg!(
-        monitor.size(),
-        monitor.name(),
-        monitor.position(),
-        monitor.scale_factor(),
-        monitor.video_modes().collect::<Vec<_>>()
-    );
+        .unwrap_or_else(|| {
+            event_loop
+                .available_monitors()
+                .next()
+                .expect("no monitor found")
+        })
+        .size();
     let window_builder = match res.window_attr.inner_size {
-        Some(size) => match size {
-            data::WindowSize::Large => todo!(),
-            data::WindowSize::Medium => todo!(),
-            data::WindowSize::Small => todo!(),
-            data::WindowSize::Fixed(width, height) => todo!(),
-        },
+        Some(size) => window_builder.with_inner_size(get_size(size, monitor_size)),
         None => window_builder,
     };
     let window_builder = match res.window_attr.max_inner_size {
-        Some(size) => match size {
-            data::WindowSize::Large => todo!(),
-            data::WindowSize::Medium => todo!(),
-            data::WindowSize::Small => todo!(),
-            data::WindowSize::Fixed(width, height) => todo!(),
-        },
+        Some(size) => window_builder.with_max_inner_size(get_size(size, monitor_size)),
         None => window_builder,
     };
     let window_builder = match res.window_attr.min_inner_size {
-        Some(size) => match size {
-            data::WindowSize::Large => todo!(),
-            data::WindowSize::Medium => todo!(),
-            data::WindowSize::Small => todo!(),
-            data::WindowSize::Fixed(width, height) => todo!(),
-        },
+        Some(size) => window_builder.with_min_inner_size(get_size(size, monitor_size)),
         None => window_builder,
     };
     let window = window_builder.build(&event_loop)?;
@@ -102,7 +87,7 @@ fn main() -> wry::Result<()> {
     let url = res.webview_attr.url.clone();
     let webview_builder = match url {
         Some(url) => {
-            if url.starts_with("/") {
+            if url.starts_with('/') {
                 webview_builder.with_url(&custom_protocol_uri(PROTOCOL, &url))?
             } else {
                 webview_builder.with_url(&url)?
@@ -161,6 +146,7 @@ fn main() -> wry::Result<()> {
         *control_flow = ControlFlow::Wait;
 
         match event {
+            Event::UserEvent(event) => println!("user event: {:#?}", event),
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
@@ -168,4 +154,27 @@ fn main() -> wry::Result<()> {
             _ => (),
         }
     });
+}
+
+fn get_size(size: data::WindowSize, monitor_size: PhysicalSize<u32>) -> Size {
+    let (width, height) = match size {
+        data::WindowSize::Large => (
+            monitor_size.width as f64 * 0.7,
+            monitor_size.height as f64 * 0.7,
+        ),
+        data::WindowSize::Medium => (
+            monitor_size.width as f64 * 0.6,
+            monitor_size.height as f64 * 0.6,
+        ),
+        data::WindowSize::Small => (
+            monitor_size.width as f64 * 0.5,
+            monitor_size.height as f64 * 0.5,
+        ),
+        data::WindowSize::Fixed { width, height } => (width, height),
+        data::WindowSize::Scale { factor } => (
+            monitor_size.width as f64 * factor,
+            monitor_size.height as f64 * factor,
+        ),
+    };
+    Size::Physical(PhysicalSize::new(width as u32, height as u32))
 }
