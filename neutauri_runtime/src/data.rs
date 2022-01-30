@@ -38,12 +38,13 @@ pub struct Data {
     fs: Dir,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
 pub enum WindowSize {
     Large,
     Medium,
     Small,
-    Fixed(f64, f64),
+    Fixed { width: f64, height: f64 },
+    Scale { factor: f64 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -68,7 +69,7 @@ pub struct Config {
     pub initialization_script: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub struct Icon {
     pub rgba: Vec<u8>,
     pub width: u32,
@@ -221,15 +222,15 @@ impl Data {
     }
 
     pub fn pack<P: AsRef<path::Path>>(config_path: P) -> Result<()> {
-        let config_path: &Path = config_path.as_ref().clone();
-        let config: Config = toml::from_str(fs::read_to_string(config_path)?.as_str())?;
-        let source = &match config_path.parent() {
+        let config_path = config_path.as_ref().canonicalize()?;
+        let config: Config = toml::from_str(fs::read_to_string(&config_path)?.as_str())?;
+        let source = match config_path.parent() {
             Some(path) => path.join(&config.source).canonicalize()?,
             None => config.source.canonicalize()?,
         };
-        let target = &match config_path.parent() {
-            Some(path) => path.join(&config.target).canonicalize()?,
-            None => config.target.canonicalize()?,
+        let target = match config_path.parent() {
+            Some(path) => normalize_path(&path.join(&config.target)),
+            None => normalize_path(&config.target),
         };
         fs::write(
             target,
@@ -346,9 +347,9 @@ impl Default for Config {
 impl Config {
     pub fn window_attr(&self) -> Result<WindowAttr> {
         Ok(WindowAttr {
-            inner_size: self.inner_size.clone(),
-            min_inner_size: self.min_inner_size.clone(),
-            max_inner_size: self.max_inner_size.clone(),
+            inner_size: self.inner_size,
+            min_inner_size: self.min_inner_size,
+            max_inner_size: self.max_inner_size,
             position: None,
             resizable: self.resizable,
             fullscreen: self.fullscreen,
@@ -359,7 +360,7 @@ impl Config {
             decorations: self.decorations,
             always_on_top: self.always_on_top,
             window_icon: match &self.window_icon {
-                Some(path) => Some(load_icon(&path.as_path())?),
+                Some(path) => Some(load_icon(path.as_path())?),
                 None => None,
             },
         })
@@ -388,20 +389,13 @@ pub fn pack<P: AsRef<path::Path>>(config: P) -> Result<()> {
 }
 
 fn load_icon(path: &Path) -> Result<Icon> {
-    let (icon_rgba, icon_width, icon_height) = {
-        let image = match image::open(path) {
-            Ok(img) => img,
-            Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e)),
-        }
-        .into_rgba8();
-        let (width, height) = image.dimensions();
-        let rgba = image.into_raw();
-        (rgba, width, height)
-    };
+    let image = image::open(path)
+        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?
+        .to_rgba8();
     Ok(Icon {
-        rgba: icon_rgba,
-        width: icon_width,
-        height: icon_height,
+        width: image.dimensions().0,
+        height: image.dimensions().1,
+        rgba: image.into_raw(),
     })
 }
 
