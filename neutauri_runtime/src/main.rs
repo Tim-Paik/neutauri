@@ -33,7 +33,6 @@ fn custom_protocol_uri_to_path<T: Into<String>>(protocol: T, uri: T) -> wry::Res
 }
 
 fn main() -> wry::Result<()> {
-    data::pack("config.toml")?;
     let res = match data::load(std::env::current_exe()?.as_path()) {
         Ok(data) => data,
         Err(_) => data::load("app.neu")?,

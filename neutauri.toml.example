@@ -1,0 +1,17 @@
+# Neutauri Config
+
+## Source and Target
+source = "web_src"
+target = "neutauri_demo"
+
+## Window
+always_on_top = false
+decorations = true
+fullscreen = false
+inner_size = "Small" ## "Small", "Medium", "Large"
+maximized = false
+resizable = true
+spa = false
+title = "Neutauri Demo"
+transparent = false
+visible = true
