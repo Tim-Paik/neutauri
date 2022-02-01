@@ -2,8 +2,35 @@ use std::{fs, io::Write};
 
 mod data;
 
+#[cfg(windows)]
+const RUNTIME_DATA: &[u8] = include_bytes!("../../target/release/neutauri_runtime.exe");
+#[cfg(not(windows))]
+const RUNTIME_DATA: &[u8] = include_bytes!("../../target/release/neutauri_runtime");
+
+#[cfg(not(windows))]
+fn options() -> fs::OpenOptions {
+    use std::os::unix::prelude::OpenOptionsExt;
+    let mut options = fs::OpenOptions::new();
+    options.write(true);
+    options.create(true);
+    options.truncate(true);
+    options.mode(0o755);
+    options
+}
+
+#[cfg(windows)]
+fn options() -> fs::OpenOptions {
+    let mut options = fs::OpenOptions::new();
+    options.write(true);
+    options.create(true);
+    options.truncate(true);
+    options
+}
+
 fn main() -> wry::Result<()> {
-    let arg = std::env::args().nth(1).unwrap_or_else(|| "neutauri.toml".to_string());
+    let arg = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "neutauri.toml".to_string());
     if arg == "--help" || arg == "-h" {
         println!("Usage: neutauri_bundler [neutauri.toml]");
         return Ok(());
@@ -24,16 +51,8 @@ fn main() -> wry::Result<()> {
         return Ok(());
     }
     let data = data::Data::build_from_dir(source, config.window_attr()?, config.webview_attr()?)?;
-    let mut option = fs::OpenOptions::new();
-    let option = option.write(true).create(true).truncate(true);
-    let option = if cfg!(unix) {
-        std::os::unix::prelude::OpenOptionsExt::mode(option, 0o755)
-    } else {
-        option
-    };
-    let mut f = option.open(&target)?;
-    let runtime_data = include_bytes!("../../target/release/neutauri_runtime");
-    f.write_all(runtime_data)?;
+    let mut f = options().open(&target)?;
+    f.write_all(RUNTIME_DATA)?;
     f.write_all(&data)?;
     f.sync_all()?;
     f.flush()?;

@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use wry::{
     application::{
         dpi::{PhysicalSize, Size},
@@ -9,11 +11,7 @@ use wry::{
 };
 mod data;
 
-#[cfg(windows)]
-const PROTOCOL_PREFIX: &str = "https://{PROTOCOL}.";
-#[cfg(not(windows))]
 const PROTOCOL_PREFIX: &str = "{PROTOCOL}://";
-
 const PROTOCOL: &str = "neu";
 
 fn custom_protocol_uri<T: Into<String>>(protocol: T, path: T) -> String {
