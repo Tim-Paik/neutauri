@@ -46,6 +46,11 @@ fn main() -> wry::Result<()> {
         Some(path) => data::normalize_path(&path.join(&config.target)),
         None => data::normalize_path(&config.target),
     };
+    let target = if target.extension() == None && cfg!(windows) {
+        target.with_extension("exe")
+    } else {
+        target
+    };
     if target.extension() == Some(std::ffi::OsStr::new("neu")) {
         data::pack(arg)?;
         return Ok(());
