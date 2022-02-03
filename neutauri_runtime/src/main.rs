@@ -1,13 +1,15 @@
 #![windows_subsystem = "windows"]
 
+use std::path;
+
 use wry::{
     application::{
         dpi::{PhysicalSize, Size},
-        event::{Event, WindowEvent},
+        event::{Event, WindowEvent, StartCause},
         event_loop::{ControlFlow, EventLoop},
         window::{Fullscreen, Icon, Window, WindowBuilder},
     },
-    webview::{RpcRequest, WebViewBuilder},
+    webview::{RpcRequest, WebViewBuilder, WebContext},
 };
 mod data;
 
@@ -110,9 +112,23 @@ fn main() -> wry::Result<()> {
                 r#"window.addEventListener('load', function(event) { rpc.call('show_window'); });"#,
             ),
     };
-    let _webview = webview_builder
+    let path = std::env::current_exe()?;
+    let path = path.file_name().unwrap_or_else(|| "neutauri_app".as_ref());
+    let mut web_context = if cfg!(windows) {
+        let config_path = std::env::var("APPDATA").unwrap_or_else(|_| ".".into());
+        let config_path = path::Path::new(&config_path).join(path);
+        WebContext::new(Some(config_path))
+    } else if cfg!(linux) {
+        let config_path = std::env::var("HOME").unwrap_or_else(|_| ".".into());
+        let config_path = path::Path::new(&config_path).join(".local/share/").join(path);
+        WebContext::new(Some(config_path))
+    } else {
+        WebContext::new(None)
+    };
+    let webview = webview_builder
         .with_visible(res.window_attr.visible)
         .with_transparent(res.window_attr.transparent)
+        .with_web_context(&mut web_context)
         .with_custom_protocol(PROTOCOL.to_string(), move |request| {
             let path = custom_protocol_uri_to_path(PROTOCOL, request.uri())?;
             let mut file = match res.open(path) {
@@ -143,7 +159,7 @@ fn main() -> wry::Result<()> {
         *control_flow = ControlFlow::Wait;
 
         match event {
-            Event::UserEvent(event) => println!("user event: {:#?}", event),
+            Event::NewEvents(StartCause::Init) => webview.focus(),
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
