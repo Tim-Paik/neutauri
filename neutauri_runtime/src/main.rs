@@ -35,7 +35,7 @@ fn custom_protocol_uri_to_path<T: Into<String>>(protocol: T, uri: T) -> wry::Res
 fn main() -> wry::Result<()> {
     let res = match data::load(std::env::current_exe()?.as_path()) {
         Ok(data) => data,
-        Err(_) => data::load("app.neu")?,
+        Err(_) => data::load("data.neu")?,
     };
     let event_loop = EventLoop::new();
 
@@ -113,7 +113,7 @@ fn main() -> wry::Result<()> {
             ),
     };
     let path = std::env::current_exe()?;
-    let path = path.file_name().unwrap_or_else(|| "neutauri_app".as_ref());
+    let path = path.file_stem().unwrap_or_else(|| "neutauri_app".as_ref());
     let mut web_context = if cfg!(windows) {
         let config_path = std::env::var("APPDATA").unwrap_or_else(|_| ".".into());
         let config_path = path::Path::new(&config_path).join(path);
