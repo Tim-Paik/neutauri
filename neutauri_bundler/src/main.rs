@@ -30,7 +30,7 @@ fn options() -> fs::OpenOptions {
 fn main() -> wry::Result<()> {
     let arg = std::env::args()
         .nth(1)
-        .unwrap_or_else(|| "neutauri.toml".to_string());
+        .unwrap_or_else(|| "neutauri.toml".into());
     if arg == "--help" || arg == "-h" {
         println!("Usage: neutauri_bundler [neutauri.toml]");
         return Ok(());
