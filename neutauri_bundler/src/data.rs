@@ -238,7 +238,7 @@ impl Default for Config {
             max_inner_size: None,
             resizable: true,
             fullscreen: false,
-            title: "".to_string(),
+            title: "".into(),
             maximized: false,
             visible: true,
             transparent: false,
@@ -246,9 +246,9 @@ impl Default for Config {
             always_on_top: false,
             window_icon: None,
             spa: false,
-            url: Some("/index.html".to_string()),
+            url: Some("/index.html".into()),
             html: None,
-            initialization_script: Some("".to_string()),
+            initialization_script: Some("".into()),
         }
     }
 }

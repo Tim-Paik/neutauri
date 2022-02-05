@@ -1,15 +1,15 @@
 #![windows_subsystem = "windows"]
 
-use std::path;
+use std::path::PathBuf;
 
 use wry::{
     application::{
         dpi::{PhysicalSize, Size},
-        event::{Event, WindowEvent, StartCause},
+        event::{Event, StartCause, WindowEvent},
         event_loop::{ControlFlow, EventLoop},
         window::{Fullscreen, Icon, Window, WindowBuilder},
     },
-    webview::{RpcRequest, WebViewBuilder, WebContext},
+    webview::{RpcRequest, WebContext, WebViewBuilder},
 };
 mod data;
 
@@ -114,13 +114,29 @@ fn main() -> wry::Result<()> {
     };
     let path = std::env::current_exe()?;
     let path = path.file_stem().unwrap_or_else(|| "neutauri_app".as_ref());
-    let mut web_context = if cfg!(windows) {
-        let config_path = std::env::var("APPDATA").unwrap_or_else(|_| ".".into());
-        let config_path = path::Path::new(&config_path).join(path);
+    let mut web_context = if cfg!(target_os = "windows") {
+        let config_path = match std::env::var("APPDATA") {
+            Ok(dir) => PathBuf::from(dir),
+            Err(_) => PathBuf::from("."),
+        }
+        .join(path);
         WebContext::new(Some(config_path))
-    } else if cfg!(linux) {
-        let config_path = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-        let config_path = path::Path::new(&config_path).join(".local/share/").join(path);
+    } else if cfg!(target_os = "linux") {
+        let config_path = match std::env::var("XDG_CONFIG_DIR") {
+            Ok(dir) => PathBuf::from(dir),
+            Err(_) => match std::env::var("HOME") {
+                Ok(dir) => PathBuf::from(dir).join(".config"),
+                Err(_) => PathBuf::from("."),
+            },
+        }
+        .join(path);
+        WebContext::new(Some(config_path))
+    } else if cfg!(target_os = "macos") {
+        let config_path = match std::env::var("HOME") {
+            Ok(dir) => PathBuf::from(dir).join("Library/Application Support/"),
+            Err(_) => PathBuf::from("."),
+        }
+        .join(path);
         WebContext::new(Some(config_path))
     } else {
         WebContext::new(None)
