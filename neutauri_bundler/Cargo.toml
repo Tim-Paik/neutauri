@@ -11,3 +11,7 @@ new_mime_guess = "4.0"
 serde = {version = "1.0", features = ["derive"]}
 toml = "0.5"
 wry = "0.12"
+
+[profile.release.package.wry]
+debug = true
+debug-assertions = true
