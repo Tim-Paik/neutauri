@@ -180,7 +180,9 @@ fn main() -> wry::Result<()> {
                 event: WindowEvent::CloseRequested,
                 ..
             } => *control_flow = ControlFlow::Exit,
-            _ => (),
+            _ => {
+                let _ = webview.resize();
+            }
         }
     });
 }
