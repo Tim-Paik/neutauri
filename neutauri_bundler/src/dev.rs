@@ -35,7 +35,7 @@ pub fn dev(config_path: String) -> wry::Result<()> {
     let config_path = std::path::Path::new(&config_path).canonicalize()?;
     let config: data::Config = toml::from_str(fs::read_to_string(&config_path)?.as_str())
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-    let source = config.source.clone().canonicalize()?;
+    let source = config.source.canonicalize()?;
 
     let event_loop = EventLoop::new();
 
@@ -43,7 +43,7 @@ pub fn dev(config_path: String) -> wry::Result<()> {
         .with_always_on_top(config.window_attr()?.always_on_top)
         .with_decorations(config.window_attr()?.decorations)
         .with_resizable(config.window_attr()?.resizable)
-        .with_title(config.window_attr()?.title.clone())
+        .with_title(config.window_attr()?.title)
         .with_maximized(config.window_attr()?.maximized)
         .with_transparent(config.window_attr()?.transparent)
         .with_visible(config.window_attr()?.visible);
@@ -83,7 +83,7 @@ pub fn dev(config_path: String) -> wry::Result<()> {
     let window = window_builder.build(&event_loop)?;
 
     let webview_builder = WebViewBuilder::new(window)?;
-    let url = config.webview_attr()?.url.clone();
+    let url = config.webview_attr()?.url;
     let webview_builder = match url {
         Some(url) => {
             if url.starts_with('/') {
@@ -94,12 +94,12 @@ pub fn dev(config_path: String) -> wry::Result<()> {
         }
         None => webview_builder.with_url(&custom_protocol_uri(PROTOCOL, "/index.html"))?,
     };
-    let html = config.webview_attr()?.html.clone();
+    let html = config.webview_attr()?.html;
     let webview_builder = match html {
         Some(html) => webview_builder.with_html(&html)?,
         None => webview_builder,
     };
-    let initialization_script = config.webview_attr()?.initialization_script.clone();
+    let initialization_script = config.webview_attr()?.initialization_script;
     let webview_builder = match initialization_script {
         Some(script) => webview_builder.with_initialization_script(&script),
         None => webview_builder,
@@ -148,7 +148,7 @@ pub fn dev(config_path: String) -> wry::Result<()> {
         .with_custom_protocol(PROTOCOL.to_string(), move |request| {
             let path = custom_protocol_uri_to_path(PROTOCOL, request.uri())?;
             let mut local_path = source.clone();
-            local_path.push(path.strip_prefix("/").unwrap_or_else(|| &path));
+            local_path.push(path.strip_prefix('/').unwrap_or(&path));
             let mut data = Vec::new();
             let mut mime: String = "application/octet-stream".to_string();
             match fs::File::open(&local_path) {
