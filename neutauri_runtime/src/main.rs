@@ -9,7 +9,7 @@ use wry::{
         event_loop::{ControlFlow, EventLoop},
         window::{Fullscreen, Icon, Window, WindowBuilder},
     },
-    webview::{RpcRequest, WebContext, WebViewBuilder},
+    webview::{WebContext, WebViewBuilder},
 };
 mod data;
 
@@ -109,7 +109,7 @@ fn main() -> wry::Result<()> {
         false => webview_builder
             .with_visible(false)
             .with_initialization_script(
-                r#"window.addEventListener('load', function(event) { rpc.call('show_window'); });"#,
+                r#"window.addEventListener('load', function(event) { window.ipc.postMessage('show_window'); });"#,
             ),
     };
     let path = std::env::current_exe()?;
@@ -161,14 +161,14 @@ fn main() -> wry::Result<()> {
                 .mimetype(&file.mimetype())
                 .body(file.decompressed_data()?)
         })
-        .with_rpc_handler(|window: &Window, req: RpcRequest| {
-            match req.method.as_str() {
+        .with_ipc_handler(|window: &Window, req: String| {
+            match req.as_str() {
                 "show_window" => window.set_visible(true),
                 "ping" => println!("recived a ping"),
                 _ => (),
             };
-            None
         })
+        .with_devtools(false)
         .build()?;
 
     event_loop.run(move |event, _, control_flow| {
