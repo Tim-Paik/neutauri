@@ -284,7 +284,13 @@ impl Config {
                 Some(path) => fs::read_to_string(path.as_path()).ok(),
                 None => None,
             },
-            initialization_script: self.initialization_script.clone(),
+            initialization_script: {
+                if let Some(script_path) = &self.initialization_script {
+                    fs::read_to_string(Path::new(script_path)).ok()
+                } else {
+                    None
+                }
+            },
         })
     }
 }
