@@ -3,7 +3,3 @@ members = [
   "neutauri_runtime",
   "neutauri_bundler",
 ]
-
-[neutauri_bundler.profile.release.package.wry]
-debug = true
-debug-assertions = true
