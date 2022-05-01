@@ -62,7 +62,7 @@ pub struct Config {
     pub transparent: bool,
     pub decorations: bool,
     pub always_on_top: bool,
-    pub window_icon: Option<PathBuf>,
+    pub icon: Option<PathBuf>,
     pub spa: bool,
     pub url: Option<String>,
     pub html: Option<PathBuf>,
@@ -90,7 +90,7 @@ pub struct WindowAttr {
     pub transparent: bool,
     pub decorations: bool,
     pub always_on_top: bool,
-    pub window_icon: Option<Icon>,
+    pub icon: Option<Icon>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -244,7 +244,7 @@ impl Default for Config {
             transparent: false,
             decorations: true,
             always_on_top: false,
-            window_icon: None,
+            icon: None,
             spa: false,
             url: Some("/index.html".into()),
             html: None,
@@ -268,7 +268,7 @@ impl Config {
             transparent: self.transparent,
             decorations: self.decorations,
             always_on_top: self.always_on_top,
-            window_icon: match &self.window_icon {
+            icon: match &self.icon {
                 Some(path) => Some(load_icon(path.as_path())?),
                 None => None,
             },

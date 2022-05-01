@@ -51,7 +51,7 @@ pub fn dev(config_path: String) -> wry::Result<()> {
         true => window_builder.with_fullscreen(Some(Fullscreen::Borderless(None))),
         false => window_builder,
     };
-    let window_builder = match config.window_attr()?.window_icon {
+    let window_builder = match config.window_attr()?.icon {
         Some(ref icon) => window_builder.with_window_icon(Some(Icon::from_rgba(
             icon.rgba.clone(),
             icon.width,
