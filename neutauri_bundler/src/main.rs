@@ -59,7 +59,7 @@ fn print_help_and_exit(args: Args) {
     std::process::exit(0);
 }
 
-fn main() -> wry::Result<()> {
+fn main() -> anyhow::Result<()> {
     let args = std::env::args().collect::<Vec<_>>();
     let args = Args::parse_args(&args[1..], gumdrop::ParsingStyle::default()).unwrap_or_else(|e| {
         eprintln!("{}: {}", args[0], e);

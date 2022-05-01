@@ -1,4 +1,5 @@
 use crate::data;
+use anyhow::Context;
 use std::{
     env, fs,
     hash::{Hash, Hasher},
@@ -18,12 +19,12 @@ fn options() -> fs::OpenOptions {
 }
 
 #[cfg(not(windows))]
-fn get_runtime_data() -> io::Result<Vec<u8>> {
+fn get_runtime_data() -> anyhow::Result<Vec<u8>> {
     Ok(include_bytes!("../../target/release/neutauri_runtime").to_vec())
 }
 
 #[cfg(windows)]
-fn get_runtime_data() -> io::Result<Vec<u8>> {
+fn get_runtime_data() -> anyhow::Result<Vec<u8>> {
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
     hasher.write(b"neutauri_runtime");
     std::time::SystemTime::now().hash(&mut hasher);
@@ -35,10 +36,11 @@ fn get_runtime_data() -> io::Result<Vec<u8>> {
     )?;
     // let mut updater = rcedit::ResourceUpdater::new();
     // updater.load(&temp_path).unwrap(); // TODO: handle error
-    fs::read(&temp_path)
+
+    fs::read(&temp_path).with_context(|| format!("Failed to read {}", temp_path.display()))
 }
 
-pub fn bundle(config_path: String) -> io::Result<()> {
+pub fn bundle(config_path: String) -> anyhow::Result<()> {
     let config_path = std::path::Path::new(&config_path).canonicalize()?;
     let config: data::Config = toml::from_str(fs::read_to_string(&config_path)?.as_str())
         .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
