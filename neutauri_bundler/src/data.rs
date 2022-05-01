@@ -66,7 +66,7 @@ pub struct Config {
     pub spa: bool,
     pub url: Option<String>,
     pub html: Option<PathBuf>,
-    pub initialization_script: Option<String>,
+    pub initialization_script: Option<PathBuf>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -248,7 +248,7 @@ impl Default for Config {
             spa: false,
             url: Some("/index.html".into()),
             html: None,
-            initialization_script: Some("".into()),
+            initialization_script: None,
         }
     }
 }
@@ -284,12 +284,9 @@ impl Config {
                 Some(path) => fs::read_to_string(path.as_path()).ok(),
                 None => None,
             },
-            initialization_script: {
-                if let Some(script_path) = &self.initialization_script {
-                    fs::read_to_string(Path::new(script_path)).ok()
-                } else {
-                    None
-                }
+            initialization_script: match &self.initialization_script {
+                Some(path) => fs::read_to_string(path.as_path()).ok(),
+                None => None,
             },
         })
     }
