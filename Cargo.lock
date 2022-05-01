@@ -1176,6 +1176,7 @@ dependencies = [
  "gumdrop",
  "image",
  "new_mime_guess",
+ "rcedit",
  "serde",
  "toml",
  "wry",
@@ -1516,6 +1517,24 @@ dependencies = [
  "crossbeam-utils",
  "lazy_static",
  "num_cpus",
+]
+
+[[package]]
+name = "rcedit"
+version = "0.1.0"
+source = "git+https://github.com/Tim-Paik/rcedit-rs.git#8d323d1015ad6ff2c111d902e9d60b75668fa781"
+dependencies = [
+ "rcedit-sys",
+ "thiserror",
+ "widestring",
+]
+
+[[package]]
+name = "rcedit-sys"
+version = "0.1.0"
+source = "git+https://github.com/Tim-Paik/rcedit-rs.git#8d323d1015ad6ff2c111d902e9d60b75668fa781"
+dependencies = [
+ "cc",
 ]
 
 [[package]]
@@ -2092,6 +2111,12 @@ name = "weezl"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8b77fdfd5a253be4ab714e4ffa3c49caf146b4de743e97510c0656cf90f1e8e"
+
+[[package]]
+name = "widestring"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17882f045410753661207383517a6f62ec3dbeb6a4ed2acce01f0728238d1983"
 
 [[package]]
 name = "winapi"
