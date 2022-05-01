@@ -91,7 +91,7 @@ pub struct WindowAttr {
     pub transparent: bool,
     pub decorations: bool,
     pub always_on_top: bool,
-    pub window_icon: Option<Icon>,
+    pub icon: Option<Icon>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
