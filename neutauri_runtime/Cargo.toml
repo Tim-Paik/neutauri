@@ -11,3 +11,11 @@ wry = "0.15"
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
+
+[package.metadata.winres]
+FileDescription = ""
+FileVersion = ""
+LegalCopyright = ""
+OriginalFilename = ""
+ProductName = ""
+ProductVersion = ""

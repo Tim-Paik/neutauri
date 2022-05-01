@@ -15,3 +15,12 @@ wry = {version = "0.15", features = ["devtools"]}
 
 [target.'cfg(windows)'.dependencies]
 rcedit = {git = "https://github.com/Tim-Paik/rcedit-rs.git"}
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"
+
+[package.metadata.winres]
+FileDescription = "Neutauri Bundler"
+LegalCopyright = "@2022 Neutauri Developers"
+OriginalFilename = ""
+ProductName = "Neutauri"
