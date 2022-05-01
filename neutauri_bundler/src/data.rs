@@ -67,6 +67,7 @@ pub struct Config {
     pub url: Option<String>,
     pub html: Option<PathBuf>,
     pub initialization_script: Option<PathBuf>,
+    pub manifest: Option<PathBuf>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
@@ -249,6 +250,7 @@ impl Default for Config {
             url: Some("/index.html".into()),
             html: None,
             initialization_script: None,
+            manifest: None,
         }
     }
 }
