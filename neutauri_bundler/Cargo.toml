@@ -15,7 +15,7 @@ toml = "0.5"
 wry = {version = "0.15", features = ["devtools"]}
 
 [target.'cfg(windows)'.dependencies]
-rcedit = {git = "https://github.com/Tim-Paik/rcedit-rs.git"}
+rcedit = {git = "https://github.com/Tim-Paik/rcedit-rs.git", rev = "2805fca"}
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"

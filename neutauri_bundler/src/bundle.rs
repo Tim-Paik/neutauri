@@ -24,20 +24,33 @@ fn get_runtime_data() -> anyhow::Result<Vec<u8>> {
 }
 
 #[cfg(windows)]
-fn get_runtime_data() -> anyhow::Result<Vec<u8>> {
+fn get_runtime_data(
+    icon_path: Option<std::path::PathBuf>,
+    manifest_path: Option<std::path::PathBuf>,
+) -> anyhow::Result<Vec<u8>> {
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
     hasher.write(b"neutauri_runtime");
     std::time::SystemTime::now().hash(&mut hasher);
-    println!("Hash is {:x}!", hasher.finish());
     let temp_path = env::temp_dir().join(format!("{:x}.exe", hasher.finish()));
     fs::write(
         &temp_path,
         include_bytes!("../../target/release/neutauri_runtime.exe"),
     )?;
-    // let mut updater = rcedit::ResourceUpdater::new();
-    // updater.load(&temp_path).unwrap(); // TODO: handle error
-
-    fs::read(&temp_path).with_context(|| format!("Failed to read {}", temp_path.display()))
+    let mut updater = rcedit::ResourceUpdater::new();
+    updater.load(&temp_path)?;
+    if let Some(icon_path) = icon_path {
+        println!("{:?}", fs::canonicalize(&icon_path)?);
+        updater.set_icon(&fs::canonicalize(icon_path)?)?;
+    }
+    if let Some(manifest_path) = manifest_path {
+        updater.set_application_manifest(&fs::canonicalize(manifest_path)?)?;
+    }
+    updater.commit()?;
+    drop(updater);
+    let runtime_data =
+        fs::read(&temp_path).with_context(|| format!("Failed to read {}", temp_path.display()))?;
+    fs::remove_file(&temp_path)?;
+    Ok(runtime_data)
 }
 
 pub fn bundle(config_path: String) -> anyhow::Result<()> {
@@ -64,7 +77,7 @@ pub fn bundle(config_path: String) -> anyhow::Result<()> {
     }
     let data = data::Data::build_from_dir(source, config.window_attr()?, config.webview_attr()?)?;
     let mut f = options().open(&target)?;
-    f.write_all(&get_runtime_data()?)?;
+    f.write_all(&get_runtime_data(config.icon, config.manifest)?)?;
     f.write_all(&data)?;
     f.sync_all()?;
     f.flush()?;
