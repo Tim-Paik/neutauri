@@ -30,6 +30,7 @@ pub fn bundle(config_path: String) -> std::io::Result<()> {
         Some(path) => data::normalize_path(&path.join(&config.target)),
         None => data::normalize_path(&config.target),
     };
+    fs::create_dir_all(target.parent().unwrap_or_else(|| std::path::Path::new("/")))?;
     let target = if target.extension() == None && cfg!(windows) {
         target.with_extension("exe")
     } else {
