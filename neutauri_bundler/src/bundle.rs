@@ -1,9 +1,15 @@
 use crate::data;
-use anyhow::Context;
 use std::{
-    env, fs,
-    hash::{Hash, Hasher},
+    fs,
     io::{self, Write},
+};
+
+#[cfg(windows)]
+use anyhow::Context;
+#[cfg(windows)]
+use std::{
+    env,
+    hash::{Hash, Hasher},
 };
 
 fn options() -> fs::OpenOptions {
@@ -19,7 +25,10 @@ fn options() -> fs::OpenOptions {
 }
 
 #[cfg(not(windows))]
-fn get_runtime_data() -> anyhow::Result<Vec<u8>> {
+fn get_runtime_data(
+    _icon_path: Option<std::path::PathBuf>,
+    _manifest_path: Option<std::path::PathBuf>,
+) -> anyhow::Result<Vec<u8>> {
     Ok(include_bytes!("../../target/release/neutauri_runtime").to_vec())
 }
 

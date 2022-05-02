@@ -11,8 +11,9 @@ gumdrop = "0.8"
 image = "0.24"
 new_mime_guess = "4.0"
 serde = {version = "1.0", features = ["derive"]}
+tao = {version = "*", default-features = false}
 toml = "0.5"
-wry = {version = "0.15", features = ["devtools"]}
+wry = {version = "0.15", default-features = false, features = ["protocol", "tray", "gtk-tray", "transparent", "fullscreen", "devtools"]}
 
 [target.'cfg(windows)'.dependencies]
 rcedit = {git = "https://github.com/Tim-Paik/rcedit-rs.git", rev = "2805fca"}
