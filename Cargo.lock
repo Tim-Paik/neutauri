@@ -1199,7 +1199,6 @@ dependencies = [
  "new_mime_guess",
  "rcedit",
  "serde",
- "tao",
  "toml",
  "winres",
  "wry",
@@ -1212,7 +1211,6 @@ dependencies = [
  "bincode",
  "brotli",
  "serde",
- "tao",
  "winres",
  "wry",
 ]
