@@ -11,8 +11,8 @@ steps:
     - echo '========Install the Rust toolchain========'
     - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y && source $HOME/.cargo/env
     - echo '========Compile the Neutauri binary========'
-    - cargo build --release --bin neutauri_runtime
-    - cargo build --release --bin neutauri_bundler
+    - $HOME/.cargo/bin/cargo build --release --bin neutauri_runtime
+    - $HOME/.cargo/bin/cargo build --release --bin neutauri_bundler
 
 - name: gitea_release
   image: plugins/gitea-release
