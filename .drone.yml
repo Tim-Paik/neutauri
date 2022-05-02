@@ -9,7 +9,7 @@ steps:
     - echo '========Install the necessary environment========'
     - apt update && apt install -y curl gcc git libwebkit2gtk-4.0-dev libappindicator3-dev
     - echo '========Install the Rust toolchain========'
-    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y && source $HOME/.cargo/env
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
     - echo '========Compile the Neutauri binary========'
     - $HOME/.cargo/bin/cargo build --release --bin neutauri_runtime
     - $HOME/.cargo/bin/cargo build --release --bin neutauri_bundler
