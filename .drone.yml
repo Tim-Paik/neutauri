@@ -4,8 +4,13 @@ name: default
 
 steps:
 - name: build
-  image: rust:latest
+  image: ubuntu:latest
   commands:
+    - echo '========Install the necessary environment========'
+    - apt update && apt install curl gcc git libwebkit2gtk-4.0-dev libappindicator3-dev
+    - echo '========Install the Rust toolchain========'
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y && source $HOME/.cargo/env
+    - echo '========Compile the Neutauri binary========'
     - cargo build --release --bin neutauri_runtime
     - cargo build --release --bin neutauri_bundler
 
