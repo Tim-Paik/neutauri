@@ -143,6 +143,7 @@ fn main() -> wry::Result<()> {
         .with_visible(res.window_attr.visible)
         .with_transparent(res.window_attr.transparent)
         .with_web_context(&mut web_context)
+        .with_initialization_script(r#"window.oncontextmenu = (event) => { event.preventDefault(); }"#)
         .with_custom_protocol(PROTOCOL.to_string(), move |request| {
             let path = custom_protocol_uri_to_path(PROTOCOL, request.uri())?;
             let mut file = match res.open(path) {
