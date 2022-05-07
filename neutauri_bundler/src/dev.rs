@@ -1,5 +1,5 @@
+use neutauri_data as data;
 use std::{fs, io::Read, path::PathBuf};
-
 use wry::{
     application::{
         dpi::{PhysicalSize, Size},
@@ -9,8 +9,6 @@ use wry::{
     },
     webview::{WebContext, WebViewBuilder},
 };
-
-use crate::data;
 
 const PROTOCOL_PREFIX: &str = "{PROTOCOL}://";
 const PROTOCOL: &str = "dev";

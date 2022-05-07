@@ -1,8 +1,6 @@
 use gumdrop::Options;
-
 mod bundle;
 mod dev;
-mod data;
 
 #[derive(Debug, Options)]
 struct Args {
@@ -80,7 +78,7 @@ fn main() -> anyhow::Result<()> {
                 }
                 let config_path = opts.config.unwrap_or_else(|| "neutauri.toml".to_string());
                 dev::dev(config_path)?;
-            },
+            }
         },
         None => print_help_and_exit(args),
     }

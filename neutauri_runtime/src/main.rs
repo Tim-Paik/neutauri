@@ -1,7 +1,7 @@
 #![windows_subsystem = "windows"]
 
+use neutauri_data as data;
 use std::path::PathBuf;
-
 use wry::{
     application::{
         dpi::{PhysicalSize, Size},
@@ -11,7 +11,6 @@ use wry::{
     },
     webview::{WebContext, WebViewBuilder},
 };
-mod data;
 
 const PROTOCOL_PREFIX: &str = "{PROTOCOL}://";
 const PROTOCOL: &str = "neu";

@@ -1192,10 +1192,8 @@ name = "neutauri_bundler"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bincode",
- "brotli",
  "gumdrop",
- "image",
+ "neutauri_data",
  "new_mime_guess",
  "rcedit",
  "serde",
@@ -1205,12 +1203,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "neutauri_runtime"
+name = "neutauri_data"
 version = "0.1.0"
 dependencies = [
  "bincode",
  "brotli",
+ "image",
+ "new_mime_guess",
  "serde",
+ "toml",
+ "wry",
+]
+
+[[package]]
+name = "neutauri_runtime"
+version = "0.1.0"
+dependencies = [
+ "neutauri_data",
  "winres",
  "wry",
 ]

@@ -2,4 +2,5 @@
 members = [
   "neutauri_runtime",
   "neutauri_bundler",
+  "neutauri_data",
 ]

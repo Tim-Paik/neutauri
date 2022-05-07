@@ -1,15 +1,14 @@
-use crate::data;
-use std::{
-    fs,
-    io::{self, Write},
-};
-
 #[cfg(windows)]
 use anyhow::Context;
+use neutauri_data as data;
 #[cfg(windows)]
 use std::{
     env,
     hash::{Hash, Hasher},
+};
+use std::{
+    fs,
+    io::{self, Write},
 };
 
 fn options() -> fs::OpenOptions {
