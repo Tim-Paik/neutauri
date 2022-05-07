@@ -58,15 +58,14 @@ fn main() -> wry::Result<()> {
         )?)),
         None => window_builder,
     };
-    let monitor_size = event_loop
-        .primary_monitor()
-        .unwrap_or_else(|| {
-            event_loop
-                .available_monitors()
-                .next()
-                .expect("no monitor found")
-        })
-        .size();
+    let monitor = event_loop.primary_monitor().unwrap_or_else(|| {
+        event_loop
+            .available_monitors()
+            .next()
+            .expect("no monitor found")
+    });
+    let monitor_size = monitor.size();
+    let monitor_scale_factor = monitor.scale_factor();
     let window_builder = match res.window_attr.inner_size {
         Some(size) => window_builder.with_inner_size(get_size(size, monitor_size)),
         None => window_builder,
@@ -169,6 +168,7 @@ fn main() -> wry::Result<()> {
         })
         .with_devtools(false)
         .build()?;
+    webview.zoom(monitor_scale_factor);
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Wait;

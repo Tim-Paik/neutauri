@@ -5,7 +5,7 @@ version = "0.1.0"
 
 [dependencies]
 neutauri_data = {path = "../neutauri_data", features = ["runtime"]}
-wry = {version = "0.15", default-features = false, features = ["protocol", "tray", "gtk-tray", "transparent", "fullscreen"]}
+wry = {version = "0.16", default-features = false, features = ["protocol", "tray", "gtk-tray", "transparent", "fullscreen"]}
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"

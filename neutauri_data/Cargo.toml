@@ -10,7 +10,7 @@ image = {version = "0.24", optional = true}
 new_mime_guess = {version = "4.0", optional = true}
 serde = {version = "1.0", features = ["derive"]}
 toml = {version = "0.5", optional = true}
-wry = {version = "0.15", default-features = false, features = ["protocol", "tray", "gtk-tray", "transparent", "fullscreen"]}
+wry = {version = "0.16", default-features = false, features = ["protocol", "tray", "gtk-tray", "transparent", "fullscreen"]}
 
 [features]
 bundler = ["new_mime_guess", "toml", "image"]
