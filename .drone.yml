@@ -1,6 +1,6 @@
 kind: pipeline
 type: docker
-name: default
+name: build
 
 steps:
 - name: build
@@ -28,3 +28,20 @@ steps:
   when:
     event: 
       - tag
+
+---
+
+kind: pipeline
+type: docker
+name: clippy
+
+steps:
+- name: clippy
+  image: ubuntu:latest
+  commands:
+    - echo '========Install the necessary environment========'
+    - apt update && apt install -y curl gcc git libwebkit2gtk-4.0-dev libappindicator3-dev
+    - echo '========Install the Rust toolchain========'
+    - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -c clippy -y
+    - echo '========Run Cargo Clippy========'
+    - $HOME/.cargo/bin/cargo clippy
