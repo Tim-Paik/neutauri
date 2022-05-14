@@ -23,3 +23,8 @@ FileDescription = "Neutauri Bundler"
 LegalCopyright = "@2022 Neutauri Developers"
 OriginalFilename = ""
 ProductName = "Neutauri"
+
+[profile.release]
+lto = true
+strip = true
+opt-level = "z"
