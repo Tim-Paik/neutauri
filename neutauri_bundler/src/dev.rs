@@ -57,12 +57,15 @@ pub fn dev(config_path: String) -> wry::Result<()> {
         )?)),
         None => window_builder,
     };
-    let monitor_size = event_loop.primary_monitor().unwrap_or_else(|| {
-        event_loop
-            .available_monitors()
-            .next()
-            .expect("no monitor found")
-    }).size();
+    let monitor_size = event_loop
+        .primary_monitor()
+        .unwrap_or_else(|| {
+            event_loop
+                .available_monitors()
+                .next()
+                .expect("no monitor found")
+        })
+        .size();
     let window_builder = match config.window_attr()?.inner_size {
         Some(size) => window_builder.with_inner_size(get_size(size, monitor_size)),
         None => window_builder,
@@ -186,9 +189,7 @@ pub fn dev(config_path: String) -> wry::Result<()> {
                 event: WindowEvent::CloseRequested,
                 ..
             } => *control_flow = ControlFlow::Exit,
-            _ => {
-                let _ = webview.resize();
-            }
+            _ => (),
         }
     });
 }

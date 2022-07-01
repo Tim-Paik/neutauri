@@ -4,3 +4,8 @@ members = [
   "neutauri_bundler",
   "neutauri_data",
 ]
+
+[profile.release]
+lto = true
+strip = true
+opt-level = "z"
