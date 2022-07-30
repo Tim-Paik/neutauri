@@ -1,6 +1,7 @@
 use gumdrop::Options;
 mod bundle;
 mod dev;
+mod init;
 
 #[derive(Debug, Options)]
 struct Args {
@@ -19,6 +20,8 @@ enum Command {
     Bundle(BundleOpts),
     #[options(help = "run the project in the current directory in development mode")]
     Dev(DevOpts),
+    #[options(help = "initialize a neutauri project")]
+    Init(InitOpts),
 }
 
 #[derive(Debug, Clone, Options)]
@@ -35,6 +38,12 @@ struct DevOpts {
     help: bool,
     #[options(help = "path to the config file [default: neutauri.toml]")]
     config: Option<String>,
+}
+
+#[derive(Debug, Clone, Options)]
+struct InitOpts {
+    #[options(help = "print help information")]
+    help: bool,
 }
 
 fn print_help_and_exit(args: Args) {
@@ -67,6 +76,8 @@ fn main() -> anyhow::Result<()> {
         Some(command) => match command {
             Command::Bundle(opts) => {
                 if opts.help_requested() {
+                    eprintln!("Package according to the configuration in neutauri.toml");
+                    eprintln!();
                     print_help_and_exit(args);
                 }
                 let config_path = opts.config.unwrap_or_else(|| "neutauri.toml".to_string());
@@ -74,10 +85,20 @@ fn main() -> anyhow::Result<()> {
             }
             Command::Dev(opts) => {
                 if opts.help_requested() {
+                    eprintln!("Check the configuration in neutauri.toml and start directly");
+                    eprintln!();
                     print_help_and_exit(args);
                 }
                 let config_path = opts.config.unwrap_or_else(|| "neutauri.toml".to_string());
                 dev::dev(config_path)?;
+            }
+            Command::Init(opts) => {
+                if opts.help_requested() {
+                    eprintln!("Interactively create a neutauri.toml configuration file");
+                    eprintln!();
+                    print_help_and_exit(args);
+                }
+                init::init()?;
             }
         },
         None => print_help_and_exit(args),

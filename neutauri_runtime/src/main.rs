@@ -141,6 +141,7 @@ fn main() -> wry::Result<()> {
         WebContext::new(None)
     };
     let webview = webview_builder
+        .with_clipboard(true)
         .with_visible(res.window_attr.visible)
         .with_transparent(res.window_attr.transparent)
         .with_web_context(&mut web_context)

@@ -1,4 +1,3 @@
-#[cfg(windows)]
 use anyhow::Context;
 use neutauri_data as data;
 #[cfg(windows)]
@@ -6,10 +5,7 @@ use std::{
     env,
     hash::{Hash, Hasher},
 };
-use std::{
-    fs,
-    io::{self, Write},
-};
+use std::{fs, io::Write};
 
 fn options() -> fs::OpenOptions {
     #[cfg(not(windows))]
@@ -61,10 +57,17 @@ fn get_runtime_data(
     Ok(runtime_data)
 }
 
-pub fn bundle(config_path: String) -> anyhow::Result<()> {
-    let config_path = std::path::Path::new(&config_path).canonicalize()?;
+pub(crate) fn bundle(config_path: String) -> anyhow::Result<()> {
+    let config_path = std::path::Path::new(&config_path)
+        .canonicalize()
+        .with_context(|| {
+            format!(
+                "Error reading config file from {}\n\n{}",
+                &config_path, "You may want to create a neutauri.toml via the init subcommand?"
+            )
+        })?;
     let config: data::Config = toml::from_str(fs::read_to_string(&config_path)?.as_str())
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        .with_context(|| "toml parsing error")?;
     let source = match config_path.parent() {
         Some(path) => path.join(&config.source).canonicalize()?,
         None => config.source.canonicalize()?,

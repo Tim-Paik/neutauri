@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use neutauri_data as data;
 use std::{fs, io::Read, path::PathBuf};
 use wry::{
@@ -29,10 +30,17 @@ fn custom_protocol_uri_to_path<T: Into<String>>(protocol: T, uri: T) -> wry::Res
     }
 }
 
-pub fn dev(config_path: String) -> wry::Result<()> {
-    let config_path = std::path::Path::new(&config_path).canonicalize()?;
+pub(crate) fn dev(config_path: String) -> Result<()> {
+    let config_path = std::path::Path::new(&config_path)
+        .canonicalize()
+        .with_context(|| {
+            format!(
+                "Error reading config file from {}\n\n{}",
+                &config_path, "You may want to create a neutauri.toml via the init subcommand?"
+            )
+        })?;
     let config: data::Config = toml::from_str(fs::read_to_string(&config_path)?.as_str())
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        .with_context(|| "toml parsing error")?;
     let source = config.source.canonicalize()?;
 
     let event_loop = EventLoop::new();
@@ -140,6 +148,7 @@ pub fn dev(config_path: String) -> wry::Result<()> {
         WebContext::new(None)
     };
     let webview = webview_builder
+        .with_clipboard(true)
         .with_visible(config.window_attr()?.visible)
         .with_transparent(config.window_attr()?.transparent)
         .with_web_context(&mut web_context)
