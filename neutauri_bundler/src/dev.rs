@@ -143,7 +143,7 @@ pub(crate) fn dev(config_path: String) -> Result<()> {
         .with_custom_protocol(PROTOCOL.to_string(), move |request| {
             let path = request.uri().path();
             let mut local_path = source.clone();
-            local_path.push(path.strip_prefix('/').unwrap_or(&path));
+            local_path.push(path.strip_prefix('/').unwrap_or(path));
             let mut data = Vec::new();
             let mut mime: String = "application/octet-stream".to_string();
             match fs::File::open(&local_path) {
