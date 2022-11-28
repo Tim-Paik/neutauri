@@ -168,7 +168,7 @@ impl Data {
         Ok(fs)
     }
 
-    fn open_file(&self, current_dir: &Dir, mut path: path::Iter) -> Result<File> {
+    fn open_file(current_dir: &Dir, mut path: path::Iter) -> Result<File> {
         let next_path = match path.next() {
             Some(str) => str.to_string_lossy().to_string(),
             None => return Err(io::Error::new(io::ErrorKind::NotFound, "file not found")),
@@ -180,7 +180,7 @@ impl Data {
         }
         for (name, dir) in &current_dir.dirs {
             if next_path == *name {
-                return self.open_file(dir, path);
+                return Self::open_file(dir, path);
             }
         }
         Err(io::Error::new(io::ErrorKind::NotFound, "file not found"))
@@ -195,7 +195,7 @@ impl Data {
         } else {
             path
         };
-        self.open_file(&self.fs, path.iter())
+        Self::open_file(&self.fs, path.iter())
     }
 }
 
@@ -296,7 +296,7 @@ impl Data {
 
         let mut target: Vec<u8> = Vec::new();
         target.extend(MAGIC_NUMBER_START);
-        target.extend(&data.len().to_be_bytes());
+        target.extend(data.len().to_be_bytes());
         target.extend(&data);
         let target_length = target.len();
         let target_length = target_length + USIZE_LEN;

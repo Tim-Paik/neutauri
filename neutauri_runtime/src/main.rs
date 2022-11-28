@@ -5,30 +5,18 @@ use std::path::PathBuf;
 use wry::{
     application::{
         dpi::{PhysicalSize, Size},
-        event::{Event, StartCause, WindowEvent},
+        event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop},
         window::{Fullscreen, Icon, Window, WindowBuilder},
     },
     webview::{WebContext, WebViewBuilder},
 };
 
-const PROTOCOL_PREFIX: &str = "{PROTOCOL}://";
+const PROTOCOL_PREFIX: &str = "neu://localhost";
 const PROTOCOL: &str = "neu";
 
-fn custom_protocol_uri<T: Into<String>>(protocol: T, path: T) -> String {
-    PROTOCOL_PREFIX.replacen("{PROTOCOL}", &protocol.into(), 1) + &path.into()
-}
-fn custom_protocol_uri_to_path<T: Into<String>>(protocol: T, uri: T) -> wry::Result<String> {
-    let prefix = PROTOCOL_PREFIX.replacen("{PROTOCOL}", &protocol.into(), 1);
-    let uri = uri.into();
-    let path = uri.strip_prefix(&prefix);
-    match path {
-        Some(str) => Ok(str.to_string()),
-        None => Err(wry::Error::Io(std::io::Error::new(
-            std::io::ErrorKind::InvalidInput,
-            prefix + " is not found in " + &uri,
-        ))),
-    }
+fn custom_protocol_uri<T: Into<String>>(path: T) -> String {
+    PROTOCOL_PREFIX.to_owned() + &path.into()
 }
 
 fn main() -> wry::Result<()> {
@@ -86,12 +74,12 @@ fn main() -> wry::Result<()> {
     let webview_builder = match url {
         Some(url) => {
             if url.starts_with('/') {
-                webview_builder.with_url(&custom_protocol_uri(PROTOCOL, &url))?
+                webview_builder.with_url(&custom_protocol_uri(&url))?
             } else {
                 webview_builder.with_url(&url)?
             }
         }
-        None => webview_builder.with_url(&custom_protocol_uri(PROTOCOL, "/index.html"))?,
+        None => webview_builder.with_url(&custom_protocol_uri("/index.html"))?,
     };
     let html = res.webview_attr.html.clone();
     let webview_builder = match html {
@@ -149,7 +137,7 @@ fn main() -> wry::Result<()> {
             r#"window.oncontextmenu = (event) => { event.preventDefault(); }"#,
         )
         .with_custom_protocol(PROTOCOL.to_string(), move |request| {
-            let path = custom_protocol_uri_to_path(PROTOCOL, request.uri())?;
+            let path = request.uri().path();
             let mut file = match res.open(path) {
                 Ok(file) => file,
                 Err(e) => {
@@ -160,9 +148,10 @@ fn main() -> wry::Result<()> {
                     }
                 }
             };
-            wry::http::ResponseBuilder::new()
-                .mimetype(&file.mimetype())
+            wry::http::Response::builder()
+                .header("Content-Type", file.mimetype())
                 .body(file.decompressed_data()?)
+                .map_err(|e| e.into())
         })
         .with_ipc_handler(|window: &Window, req: String| {
             match req.as_str() {
@@ -178,11 +167,13 @@ fn main() -> wry::Result<()> {
         *control_flow = ControlFlow::Wait;
 
         match event {
-            Event::NewEvents(StartCause::Init) => webview.focus(),
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
             } => *control_flow = ControlFlow::Exit,
+            Event::GlobalShortcutEvent(id) => webview
+                .evaluate_script(&format!("GlobalShortcutEvent({:})", id.0))
+                .unwrap_or_default(),
             _ => (),
         }
     });

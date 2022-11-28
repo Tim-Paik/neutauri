@@ -77,7 +77,7 @@ pub(crate) fn bundle(config_path: String) -> anyhow::Result<()> {
         None => data::normalize_path(&config.target),
     };
     fs::create_dir_all(target.parent().unwrap_or_else(|| std::path::Path::new("/")))?;
-    let target = if target.extension() == None && cfg!(windows) {
+    let target = if target.extension().is_none() && cfg!(windows) {
         target.with_extension("exe")
     } else {
         target

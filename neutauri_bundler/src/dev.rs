@@ -4,30 +4,18 @@ use std::{fs, io::Read, path::PathBuf};
 use wry::{
     application::{
         dpi::{PhysicalSize, Size},
-        event::{Event, StartCause, WindowEvent},
+        event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop},
         window::{Fullscreen, Icon, Window, WindowBuilder},
     },
     webview::{WebContext, WebViewBuilder},
 };
 
-const PROTOCOL_PREFIX: &str = "{PROTOCOL}://";
+const PROTOCOL_PREFIX: &str = "dev://localhost";
 const PROTOCOL: &str = "dev";
 
-fn custom_protocol_uri<T: Into<String>>(protocol: T, path: T) -> String {
-    PROTOCOL_PREFIX.replacen("{PROTOCOL}", &protocol.into(), 1) + &path.into()
-}
-fn custom_protocol_uri_to_path<T: Into<String>>(protocol: T, uri: T) -> wry::Result<String> {
-    let prefix = PROTOCOL_PREFIX.replacen("{PROTOCOL}", &protocol.into(), 1);
-    let uri = uri.into();
-    let path = uri.strip_prefix(&prefix);
-    match path {
-        Some(str) => Ok(str.to_string()),
-        None => Err(wry::Error::Io(std::io::Error::new(
-            std::io::ErrorKind::InvalidInput,
-            prefix + " is not found in " + &uri,
-        ))),
-    }
+fn custom_protocol_uri<T: Into<String>>(path: T) -> String {
+    PROTOCOL_PREFIX.to_owned() + &path.into()
 }
 
 pub(crate) fn dev(config_path: String) -> Result<()> {
@@ -93,12 +81,12 @@ pub(crate) fn dev(config_path: String) -> Result<()> {
     let webview_builder = match url {
         Some(url) => {
             if url.starts_with('/') {
-                webview_builder.with_url(&custom_protocol_uri(PROTOCOL, &url))?
+                webview_builder.with_url(&custom_protocol_uri(&url))?
             } else {
                 webview_builder.with_url(&url)?
             }
         }
-        None => webview_builder.with_url(&custom_protocol_uri(PROTOCOL, "/index.html"))?,
+        None => webview_builder.with_url(&custom_protocol_uri("/index.html"))?,
     };
     let html = config.webview_attr()?.html;
     let webview_builder = match html {
@@ -153,7 +141,7 @@ pub(crate) fn dev(config_path: String) -> Result<()> {
         .with_transparent(config.window_attr()?.transparent)
         .with_web_context(&mut web_context)
         .with_custom_protocol(PROTOCOL.to_string(), move |request| {
-            let path = custom_protocol_uri_to_path(PROTOCOL, request.uri())?;
+            let path = request.uri().path();
             let mut local_path = source.clone();
             local_path.push(path.strip_prefix('/').unwrap_or(&path));
             let mut data = Vec::new();
@@ -177,7 +165,10 @@ pub(crate) fn dev(config_path: String) -> Result<()> {
                     }
                 }
             }
-            wry::http::ResponseBuilder::new().mimetype(&mime).body(data)
+            wry::http::Response::builder()
+                .header("Content-Type", mime)
+                .body(data)
+                .map_err(|e| e.into())
         })
         .with_ipc_handler(|window: &Window, req: String| {
             match req.as_str() {
@@ -193,11 +184,13 @@ pub(crate) fn dev(config_path: String) -> Result<()> {
         *control_flow = ControlFlow::Wait;
 
         match event {
-            Event::NewEvents(StartCause::Init) => webview.focus(),
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
             } => *control_flow = ControlFlow::Exit,
+            Event::GlobalShortcutEvent(id) => webview
+                .evaluate_script(&format!("GlobalShortcutEvent({:})", id.0))
+                .unwrap_or_default(),
             _ => (),
         }
     });
