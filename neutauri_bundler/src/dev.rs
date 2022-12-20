@@ -27,7 +27,7 @@ pub(crate) fn dev(config_path: String) -> Result<()> {
                 &config_path, "You may want to create a neutauri.toml via the init subcommand?"
             )
         })?;
-    let config: data::Config = toml::from_str(fs::read_to_string(&config_path)?.as_str())
+    let config: data::Config = toml::from_str(fs::read_to_string(config_path)?.as_str())
         .with_context(|| "toml parsing error")?;
     let source = config.source.canonicalize()?;
 
@@ -167,6 +167,7 @@ pub(crate) fn dev(config_path: String) -> Result<()> {
             }
             wry::http::Response::builder()
                 .header("Content-Type", mime)
+                .header("Access-Control-Allow-Origin", "*")
                 .body(data)
                 .map_err(|e| e.into())
         })

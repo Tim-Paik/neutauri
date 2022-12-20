@@ -11,7 +11,7 @@ neutauri_data = {path = "../neutauri_data", features = ["bundler"]}
 new_mime_guess = "4.0"
 serde = {version = "1.0", features = ["derive"]}
 toml = "0.5"
-wry = {version = "0.22", default-features = false, features = ["protocol", "tray", "transparent", "fullscreen", "devtools"]}
+wry = {version = "0.23", default-features = false, features = ["protocol", "tray", "transparent", "fullscreen", "devtools"]}
 
 [target.'cfg(windows)'.dependencies]
 rcedit = {git = "https://github.com/Tim-Paik/rcedit-rs.git", rev = "2805fca"}
