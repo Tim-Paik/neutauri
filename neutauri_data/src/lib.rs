@@ -307,7 +307,7 @@ impl Data {
         Ok(target)
     }
 
-    pub fn pack<P: AsRef<path::Path>>(config_path: P) -> Result<()> {
+    pub fn pack<P: AsRef<path::Path>>(config_path: P) -> anyhow::Result<()> {
         let config_path = config_path.as_ref().canonicalize()?;
         let config: Config = toml::from_str(fs::read_to_string(&config_path)?.as_str())?;
         let source = match config_path.parent() {
@@ -399,7 +399,7 @@ pub fn load<P: AsRef<path::Path> + Copy>(path: P) -> Result<Data> {
 }
 
 #[cfg(feature = "bundler")]
-pub fn pack<P: AsRef<path::Path>>(config: P) -> Result<()> {
+pub fn pack<P: AsRef<path::Path>>(config: P) -> anyhow::Result<()> {
     Data::pack(config)
 }
 

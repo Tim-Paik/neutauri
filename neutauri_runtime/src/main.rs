@@ -1,7 +1,7 @@
 #![windows_subsystem = "windows"]
 
 use neutauri_data as data;
-use std::path::PathBuf;
+use std::{borrow::Cow, path::PathBuf};
 use wry::{
     application::{
         dpi::{PhysicalSize, Size},
@@ -141,7 +141,10 @@ fn main() -> wry::Result<()> {
             let mut file = match res.open(path) {
                 Ok(file) => file,
                 Err(e) => {
-                    if e.kind() == std::io::ErrorKind::NotFound && res.webview_attr.spa {
+                    if e.kind() == std::io::ErrorKind::NotFound
+                        && res.webview_attr.spa
+                        && path != "/index.html"
+                    {
                         res.open("index.html")?
                     } else {
                         return Err(wry::Error::Io(e));
@@ -150,7 +153,7 @@ fn main() -> wry::Result<()> {
             };
             wry::http::Response::builder()
                 .header("Content-Type", file.mimetype())
-                .body(file.decompressed_data()?)
+                .body(Cow::Owned(file.decompressed_data()?))
                 .map_err(|e| e.into())
         })
         .with_ipc_handler(|window: &Window, req: String| {

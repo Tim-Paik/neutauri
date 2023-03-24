@@ -54,7 +54,6 @@ fn print_help_and_exit(args: Args) {
     eprintln!(
         "Usage: {:?} [SUBCOMMAND] [OPTIONS]",
         std::env::args()
-            .into_iter()
             .next()
             .unwrap_or_else(|| "neutauri_bundler".to_string())
     );

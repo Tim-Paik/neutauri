@@ -83,8 +83,7 @@ pub(crate) fn bundle(config_path: String) -> anyhow::Result<()> {
         target
     };
     if target.extension() == Some(std::ffi::OsStr::new("neu")) {
-        data::pack(config_path)?;
-        return Ok(());
+        return data::pack(config_path);
     }
     let data = data::Data::build_from_dir(source, config.window_attr()?, config.webview_attr()?)?;
     let mut f = options().open(&target)?;

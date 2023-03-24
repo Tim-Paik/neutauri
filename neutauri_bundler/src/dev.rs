@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use neutauri_data as data;
-use std::{fs, io::Read, path::PathBuf};
+use std::{fs, io::Read, path::PathBuf, borrow::Cow};
 use wry::{
     application::{
         dpi::{PhysicalSize, Size},
@@ -168,7 +168,7 @@ pub(crate) fn dev(config_path: String) -> Result<()> {
             wry::http::Response::builder()
                 .header("Content-Type", mime)
                 .header("Access-Control-Allow-Origin", "*")
-                .body(data)
+                .body(Cow::Owned(data))
                 .map_err(|e| e.into())
         })
         .with_ipc_handler(|window: &Window, req: String| {
