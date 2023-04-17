@@ -4,7 +4,8 @@ name = "neutauri_runtime"
 version = "0.1.0"
 
 [dependencies]
-neutauri_data = {path = "../neutauri_data", features = ["runtime"]}
+neutauri_data = {path = "../neutauri_data", default-features = false, features = ["runtime"]}
+vc-ltl = "5.0.5"
 wry = {version = "0.27", default-features = false, features = ["protocol", "tray", "transparent", "fullscreen"]}
 
 [target.'cfg(windows)'.build-dependencies]

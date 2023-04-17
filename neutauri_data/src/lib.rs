@@ -2,7 +2,7 @@ use bincode::Options;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
-    io::{self, Read, Result, SeekFrom, Seek},
+    io::{self, Read, Result},
     path::{self, Component, Path, PathBuf},
 };
 use wry::application::dpi::Position;
@@ -120,6 +120,7 @@ impl File {
 #[cfg(feature = "runtime")]
 impl Data {
     pub fn new<P: AsRef<path::Path> + Copy>(path: P) -> Result<Self> {
+        use std::io::{Seek, SeekFrom};
         let mut base = fs::File::open(path)?;
         let base_length = base.metadata()?.len();
         let mut magic_number_start_data = [0; MAGIC_NUMBER_START.len()];

@@ -7,10 +7,11 @@ version = "0.1.0"
 anyhow = "1.0"
 gumdrop = "0.8"
 inquire = "0.6"
-neutauri_data = {path = "../neutauri_data", features = ["bundler"]}
+neutauri_data = {path = "../neutauri_data", default-features = false, features = ["bundler"]}
 new_mime_guess = "4.0"
 serde = {version = "1.0", features = ["derive"]}
 toml = "0.7"
+vc-ltl = "5.0.5"
 wry = {version = "0.27", default-features = false, features = ["protocol", "tray", "transparent", "fullscreen", "devtools"]}
 
 [target.'cfg(windows)'.dependencies]

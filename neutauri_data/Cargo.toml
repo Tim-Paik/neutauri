@@ -14,5 +14,6 @@ toml = {version = "0.7", optional = true}
 wry = {version = "0.27", default-features = false, features = ["protocol", "tray", "transparent", "fullscreen"]}
 
 [features]
+default = ["runtime"]
 bundler = ["anyhow", "new_mime_guess", "toml", "image"]
 runtime = []
